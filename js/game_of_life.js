@@ -7,7 +7,7 @@ var GameOfLife = function(_height, _width, _delay) {
   var useMatrix1 = true;
 
   var active = false;
-  var run;
+  var run, reset;
 
   var height = _height;
   var width = _width;
@@ -73,10 +73,20 @@ var GameOfLife = function(_height, _width, _delay) {
       toggleActive();
     });
 
+    var resetButton = document.createElement('input');
+    resetButton.setAttribute('value', 'Reset');
+    resetButton.setAttribute('type', 'button');
+    resetButton.setAttribute('id', 'reset_button');
+
+    resetButton.addEventListener('click', function() {
+      reset();
+    });
+
     var body = document.getElementsByTagName('body')[0];
 
     body.appendChild(domElement);
     body.appendChild(button);
+    body.appendChild(resetButton);
 
   };
 
@@ -141,7 +151,20 @@ var GameOfLife = function(_height, _width, _delay) {
 
   };
 
+  this.reset = function() {
+    useMatrix1 = true;
+
+    for(var i = 0; i < height; i++) {
+      for(var j = 0; j < width; j++) {
+        dataMatrix1[i][j] = false;
+        elementMatrix[i][j].className = 'dead';
+      }
+    }
+  };
+
   run = this.run;
+  reset = this.reset;
+
   init();
 
   return this;
