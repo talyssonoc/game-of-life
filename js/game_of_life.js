@@ -153,6 +153,7 @@ var GameOfLife = function(_height, _width, _delay) {
 
   this.reset = function() {
     useMatrix1 = true;
+    active = false;
 
     for(var i = 0; i < height; i++) {
       for(var j = 0; j < width; j++) {
