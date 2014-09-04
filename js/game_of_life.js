@@ -1,122 +1,41 @@
 var GameOfLife = function(_height, _width, _delay) {
-  var elementMatrix = [];
-  var domElement;
+  var self = this;
 
-  var dataMatrix1 = [];
-  var dataMatrix2 = [];
-  var useMatrix1 = true;
+  this.elementMatrix = [];
 
-  var active = false;
-  var run, reset;
+  this.dataMatrix1 = [];
+  this.dataMatrix2 = [];
+  this.useMatrix1 = true;
 
-  var height = _height;
-  var width = _width;
-  var delay = _delay;
+  this.active = false;
 
-  var toggleActive = this.toggleActive = function() {
-    active = !active;
-    if(active) {
-      run();
-    }
-  }
+  this.height = _height;
+  this.width = _width;
+  this.delay = _delay;
 
-  var getActive = this.getActive = function() {
-    return active;
-  }
+  this.placeElements();
 
-  var init = function() {
+  return this;
 
-    domElement = document.createElement('table');
-    domElement.setAttribute('id', 'game_of_life');
-    
-    for(var i = 0; i < height; i++) {
-      dataMatrix1[i] = [];
-      dataMatrix2[i] = [];
+};
 
-      var newRow = document.createElement('tr');
-      elementMatrix[i] = [];
-
-      for(var j = 0; j < width; j++) {
-        var newCell = document.createElement('td');
-
-        newCell.className = 'dead';
-        newCell.setAttribute('data-i', i);
-        newCell.setAttribute('data-j', j);
-
-        newCell.addEventListener('click', function() {
-          var currentMatrix = (useMatrix1 ? dataMatrix1 : dataMatrix2);
-
-          var alive = this.className === 'alive';
-          this.className = (alive ? 'dead' : 'alive');
-
-          var currentRow = parseInt(this.getAttribute('data-i'));
-          var currentColumn = parseInt(this.getAttribute('data-j'));
-
-          currentMatrix[currentRow][currentColumn] = !alive;
-          // alert(countNeighbours(currentRow, currentColumn, currentMatrix));
-
-        });
-
-        newRow.appendChild(newCell);
-        elementMatrix[i][j] = newCell;
-        dataMatrix1[i][j] = false;
-      }
-      domElement.appendChild(newRow);
-    }
-
-    var button = document.createElement('input');
-    button.setAttribute('value', 'Start/Stop');
-    button.setAttribute('type', 'button');
-    button.setAttribute('id', 'start_button');
-
-    button.addEventListener('click', function() {
-      toggleActive();
-    });
-
-    var resetButton = document.createElement('input');
-    resetButton.setAttribute('value', 'Reset');
-    resetButton.setAttribute('type', 'button');
-    resetButton.setAttribute('id', 'reset_button');
-
-    resetButton.addEventListener('click', function() {
-      reset();
-    });
-
-    var body = document.getElementsByTagName('body')[0];
-
-    body.appendChild(domElement);
-    body.appendChild(button);
-    body.appendChild(resetButton);
-
-  };
-
-  var countNeighbours = function(row, column, matrix) {
-    var neighbours = 0;
-
-    for(var i = -1; i <= 1; i++) {
-      for(var j = -1; j <= 1; j++) {
-        if(!(i == 0 && j == 0)) {
-          try {
-            neighbours += (matrix[row + i][column + j] ? 1 : 0);
-          } catch(e) {}
-        }
-      }
-    }
-
-    return neighbours;
-
-  };
-
-  this.run = function() {
+GameOfLife.prototype = {
+  run: function run() {
     var currentMatrix;
     var otherMatrix;
 
-    currentMatrix = (useMatrix1 ? dataMatrix1 : dataMatrix2);
-    otherMatrix = (useMatrix1 ? dataMatrix2 : dataMatrix1);
+    if(this.useMatrix1) {
+      currentMatrix = this.dataMatrix1;
+      otherMatrix = this.dataMatrix2;
+    }
+    else {
+      currentMatrix = this.dataMatrix2;
+      otherMatrix = this.dataMatrix1;
+    }
 
-    for(var i = 0; i < height; i++) {
-      for(var j = 0; j < width; j++) {
-        var neighbours = countNeighbours(i, j, currentMatrix);
+    for(var i = 0; i < this.height; i++) {
+      for(var j = 0; j < this.width; j++) {
+        var neighbours = this.countNeighbours(i, j, currentMatrix);
 
         if(neighbours < 2) {
           otherMatrix[i][j] = false;
@@ -138,36 +57,128 @@ var GameOfLife = function(_height, _width, _delay) {
       }
     }
 
-    for(var i = 0; i < height; i++) {
-      for(var j = 0; j < width; j++) {
-        elementMatrix[i][j].className = (otherMatrix[i][j] ? 'alive' : 'dead');
+    for(var i = 0; i < this.height; i++) {
+      for(var j = 0; j < this.width; j++) {
+        this.elementMatrix[i][j].className = (otherMatrix[i][j] ? 'alive' : 'dead');
       }
     }
 
-    useMatrix1 = !useMatrix1;
+    this.useMatrix1 = !this.useMatrix1;
 
-    if(active)
-      setTimeout(run, delay);
+    var self = this;
 
-  };
+    if(this.active) {
+      setTimeout(function() {
+        self.run();
+      }, this.delay);
+    }
+  },
 
-  this.reset = function() {
-    useMatrix1 = true;
-    active = false;
+  placeElements: function placeElements() {
+    var self = this;
+    
+    this.domElement = document.createElement('table');
+    this.domElement.setAttribute('id', 'game_of_life');
+    
+    var newRow,
+        newCell;
 
-    for(var i = 0; i < height; i++) {
-      for(var j = 0; j < width; j++) {
-        dataMatrix1[i][j] = false;
-        elementMatrix[i][j].className = 'dead';
+    for(var i = 0; i < this.height; i++) {
+      this.dataMatrix1[i] = [];
+      this.dataMatrix2[i] = [];
+
+      newRow = document.createElement('tr');
+      this.elementMatrix[i] = [];
+
+      for(var j = 0; j < this.width; j++) {
+        newCell = document.createElement('td');
+
+        newCell.className = 'dead';
+        newCell.setAttribute('data-i', i);
+        newCell.setAttribute('data-j', j);
+
+        newCell.addEventListener('click', function() {
+          var currentMatrix = (self.useMatrix1 ? self.dataMatrix1 : self.dataMatrix2);
+
+          var alive = this.className === 'alive';
+          this.className = (alive ? 'dead' : 'alive');
+
+          var currentRow = parseInt(this.getAttribute('data-i'), 10);
+          var currentColumn = parseInt(this.getAttribute('data-j'), 10);
+
+          currentMatrix[currentRow][currentColumn] = !alive;
+
+        });
+
+        newRow.appendChild(newCell);
+        this.elementMatrix[i][j] = newCell;
+        this.dataMatrix1[i][j] = false;
+      }
+      this.domElement.appendChild(newRow);
+    }
+
+    var button = document.createElement('input');
+    button.setAttribute('value', 'Start/Stop');
+    button.setAttribute('type', 'button');
+    button.setAttribute('id', 'start_button');
+
+
+    button.addEventListener('click', function() {
+      self.toggleActive();
+    });
+
+    var resetButton = document.createElement('input');
+    resetButton.setAttribute('value', 'Reset');
+    resetButton.setAttribute('type', 'button');
+    resetButton.setAttribute('id', 'reset_button');
+
+    resetButton.addEventListener('click', function() {
+      self.reset();
+    });
+
+    var body = document.getElementsByTagName('body')[0];
+
+    body.appendChild(this.domElement);
+    body.appendChild(button);
+    body.appendChild(resetButton);
+  },
+
+  reset: function reset() {
+    this.useMatrix1 = true;
+    this.active = false;
+
+    for(var i = 0; i < this.height; i++) {
+      for(var j = 0; j < this.width; j++) {
+        this.dataMatrix1[i][j] = false;
+        this.elementMatrix[i][j].className = 'dead';
       }
     }
-  };
+  },
 
-  run = this.run;
-  reset = this.reset;
+  countNeighbours: function countNeighbours(row, column, matrix) {
+    var neighbours = 0;
 
-  init();
+    for(var i = -1; i <= 1; i++) {
+      for(var j = -1; j <= 1; j++) {
+        if(!(i == 0 && j == 0)) {
+          try {
+            neighbours += (matrix[row + i][column + j] ? 1 : 0);
+          } catch(e) {}
+        }
+      }
+    }
 
-  return this;
+    return neighbours;
+  },
 
-};
+  toggleActive: function toggleActive() {
+    this.active = !this.active;
+    if(this.active) {
+      this.run();
+    }
+  },
+
+  getActive: function getActive() {
+    return this.active;
+  }
+}
